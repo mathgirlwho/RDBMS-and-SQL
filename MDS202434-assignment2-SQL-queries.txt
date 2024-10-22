@@ -1,0 +1,92 @@
+-- Q1
+
+SELECT dept_name, budget
+FROM department
+WHERE budget = (SELECT MIN(budget) FROM department);
+
+-- Q2
+
+SELECT dept_name, building
+FROM department
+WHERE building IN (
+    SELECT building
+    FROM department
+    GROUP BY building
+    HAVING COUNT(dept_name) = 1
+);
+
+
+-- Q3
+
+SELECT instructor.ID, instructor.name, teaches.course_id, course.title
+FROM instructor
+JOIN teaches ON instructor.ID = teaches.ID
+JOIN course ON teaches.course_id = course.course_id
+WHERE instructor.ID IN (
+    SELECT teaches.ID
+    FROM teaches
+    GROUP BY teaches.ID
+    HAVING COUNT(teaches.course_id) = 1
+);
+
+
+-- Q4
+
+SELECT course.course_id, course.title, COUNT(prereq.prereq_id) AS num_prereqs
+FROM course
+JOIN prereq ON course.course_id = prereq.course_id
+GROUP BY course.course_id, course.title
+HAVING COUNT(prereq.prereq_id) > 1;
+
+
+-- Q5
+
+SELECT prereq.prereq_id AS course_id, course.title, COUNT(prereq.course_id) AS num_courses
+FROM prereq
+JOIN course ON prereq.prereq_id = course.course_id
+GROUP BY prereq.prereq_id, course.title
+HAVING COUNT(prereq.course_id) > 1;
+
+
+-- Q6
+
+SELECT student.ID, student.name, 2017 AS year
+FROM student
+WHERE student.ID NOT IN (
+    SELECT takes.ID
+    FROM takes
+    WHERE takes.year = 2017
+)
+UNION ALL
+SELECT student.ID, student.name, 2018 AS year
+FROM student
+WHERE student.ID NOT IN (
+    SELECT takes.ID
+    FROM takes
+    WHERE takes.year = 2018
+);
+
+
+-- Q7
+
+SELECT 
+    student.ID AS student_id, 
+    student.name AS student_name, 
+    takes.course_id, 
+    course.title, 
+    MAX(takes.semester) AS most_recent_semester, 
+    MAX(takes.year) AS most_recent_year, 
+    COUNT(*) AS num_registrations
+FROM 
+    student
+JOIN 
+    takes ON student.ID = takes.ID
+JOIN 
+    course ON takes.course_id = course.course_id
+GROUP BY 
+    student.ID, 
+    student.name, 
+    takes.course_id, 
+    course.title
+HAVING 
+    COUNT(*) > 1;
